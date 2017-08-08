@@ -1,3 +1,7 @@
+/**
+ * Task runner with a delay
+ * @type {{stack: {}, runImmediate: boolean, keepAliveTime: number, index: number, push: push, next: next, execute: execute, run: run}}
+ */
 let stackTimeline = {
     /**
      * Stack with tasks
@@ -14,6 +18,8 @@ let stackTimeline = {
      */
     keepAliveTime : 100,
 
+    count : 0,
+
     /**
      * Push task in queue
      *
@@ -21,11 +27,12 @@ let stackTimeline = {
      * @param time
      */
     push : function(fcn, time) {
-    
+
         this.stack.push({
             "fcn"   : fcn,
             "time"  : time
         });
+        self.count++;
     },
 
     /**
@@ -40,7 +47,7 @@ let stackTimeline = {
         if (current == undefined) {
             return null;
         }
-        
+
         return current;
     },
 
@@ -51,15 +58,6 @@ let stackTimeline = {
      */
     execute : function (fcn) {
         fcn();
-    },
-
-    /**
-     * Returns true if stack is empty
-     * @returns {boolean}
-     */
-    isEmptyStack : function() {
-
-        return this.stack.length;
     },
 
     /**
@@ -82,29 +80,22 @@ let stackTimeline = {
         fcn  = current['fcn'];
         time = current['time'];
 
-        /**
-         * Function to execute immediate or delayed
-         */
-        executorFcn = function() {
-            // execute original function
-            self.execute(fcn);
-
-            // if empty stack mark to execute directly next function
-            self.runImmediate = self.isEmptyStack();
-
-            // run again the process
-            self.run();
-        };
-
+        // don't wait if it must run immediate
         if (this.runImmediate) {
-            executorFcn();
-        } else {
-            timeoutObj = setTimeout(function () {
-                executorFcn();
-                clearTimeout(timeoutObj);
-
-            }, time);
+            time = 0;
         }
+
+        /*
+         * Still use timeout to run in parallel, to allow changing stack while executing original function
+         */
+        timeoutObj = setTimeout(function () {
+            self.execute(fcn);
+            clearTimeout(timeoutObj);
+            self.count--;
+            self.runImmediate = (self.count === 0);
+            self.run();
+        }, time);
+
 
         return true;
     }
