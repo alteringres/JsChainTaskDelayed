@@ -84,7 +84,6 @@ let stackTimeline = {
 
         if (this.lastRunTime != null) {
             timeDiff = runDateMillis - this.lastRunTime;
-            console.log("diff time", timeDiff, time,  this.lastRunTime);
             if (timeDiff >= time ) {
                 delayTime = 0;
             } else {
