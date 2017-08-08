@@ -4,32 +4,33 @@ Project which has the main purpose to facilitate the  execution of tasks on afte
 #Usage
 ````javascript
 stackTimeline.run();
-// this will run immediate because no task is added in queue yet
+// task delayed with 0
 stackTimeline.push(
     function() {
         console.log('task 1000');
     },
     1000
 );
-// this will run delayed because the stack contains task 1000 when this is added
+// task delayed with 500
 stackTimeline.push(
     function() {
         console.log('task 500');
     },
     500
 );
-// this will run delayed because the stack is not empty
+// task delayed with 2000
 stackTimeline.push(
     function() {
-        console.log('task 2000');
+        console.log('task 200');
     },
     2000
 );
-// program to add element in stack after 4 seconds, will run immediate because the stack will be empty until then
+
+// task delayed with 2592
 setTimeout(function() {
     stackTimeline.push(
         function() {
-            console.log('task 4000');
+            console.log('task 400');
         },
         4000
     );
