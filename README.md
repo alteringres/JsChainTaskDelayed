@@ -21,7 +21,7 @@ stackTimeline.push(
 // task delayed with 2000
 stackTimeline.push(
     function() {
-        console.log('task 200');
+        console.log('task 2000');
     },
     2000
 );
@@ -30,7 +30,7 @@ stackTimeline.push(
 setTimeout(function() {
     stackTimeline.push(
         function() {
-            console.log('task 400');
+            console.log('task 4000');
         },
         4000
     );
