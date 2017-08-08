@@ -18,7 +18,7 @@ stackTimeline.push(
     },
     500
 );
-// this will run delayed because the stack if not empty (stackTimeline si not yet started to consume)
+// this will run delayed because the stack if not empty
 stackTimeline.push(
     function() {
         console.log('task 2000');
