@@ -4,7 +4,7 @@ Project which has the main purpose to facilitate the  execution of tasks on afte
 #Usage
 ````javascript
 stackTimeline.run();
-// this will run immediate becuase no task si added in queue for waiting
+// this will run immediate because no task is added in queue yet
 stackTimeline.push(
     function() {
         console.log('task 1000');
@@ -18,7 +18,7 @@ stackTimeline.push(
     },
     500
 );
-// this will run delayed because the stack if not empty
+// this will run delayed because the stack is not empty
 stackTimeline.push(
     function() {
         console.log('task 2000');
