@@ -9,16 +9,14 @@ let stackTimeline = {
     stack : [],
 
     /**
-     * Flag to know if a task can be run without any delay
-     */
-    runImmediate : true,
-
-    /**
      * Keep alive checking for any task
      */
     keepAliveTime : 100,
 
-    count : 0,
+    /**
+     * Last time whan a task run
+     */
+    lastRunTime : null,
 
     /**
      * Push task in queue
@@ -66,7 +64,10 @@ let stackTimeline = {
      * @returns {boolean}
      */
     run : function() {
-        let self = this, executorFcn, timeoutObj, fcn, time, current;
+        let self = this, timeoutObj, fcn,
+            time, current, delayTime,
+            runDate, runDateMillis, timeDiff;
+
         current = this.next();
         if (current === null) {
             timeoutObj = setTimeout(function() {
@@ -76,13 +77,21 @@ let stackTimeline = {
 
             return false;
         }
+        runDate         = new Date();
+        runDateMillis   = runDate.getTime();
+        fcn             = current['fcn'];
+        time            = current['time'];
 
-        fcn  = current['fcn'];
-        time = current['time'];
-
-        // don't wait if it must run immediate
-        if (this.runImmediate) {
-            time = 0;
+        if (this.lastRunTime != null) {
+            timeDiff = runDateMillis - this.lastRunTime;
+            console.log("diff time", timeDiff, time,  this.lastRunTime);
+            if (timeDiff >= time ) {
+                delayTime = 0;
+            } else {
+                delayTime = time - timeDiff;
+            }
+        } else {
+            delayTime = 0;
         }
 
         /*
@@ -90,12 +99,13 @@ let stackTimeline = {
          */
         timeoutObj = setTimeout(function () {
             self.execute(fcn);
-            clearTimeout(timeoutObj);
-            self.count--;
-            self.runImmediate = (self.count === 0);
-            self.run();
-        }, time);
+            let date = new Date();
+            self.lastRunTime = date.getTime();
 
+            clearTimeout(timeoutObj);
+            self.run();
+
+        }, delayTime);
 
         return true;
     }
