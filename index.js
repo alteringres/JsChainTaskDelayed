@@ -134,6 +134,7 @@ class TaskThread {
              */
             if (this.canCreateSubTasks()) {
                 this.isPaused = true;
+                this.isRunning = true;
                 return false;
             } else {
                 this.isRunning = false;
