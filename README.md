@@ -3,62 +3,39 @@ Project which has the main purpose to facilitate the  execution of tasks on afte
 
 #Usage
 ````javascript
-let taskScheduler = new TaskScheduler();
-taskScheduler.verbose = true;
-taskScheduler.startThread();
+let runner = new TaskThread(1, true, true, function() { console.log('main function executed'); });
+TASK_THREAD_VERBOSE = -1;
 
-// task delayed with 0
-taskScheduler.push(
-    function() {
-        console.log('task 1');
-    },
-    1000,
-    "test 1000"
-);
-// task delayed with 500
-taskScheduler.push(
-    function() {
-        console.log('task 2');
-    },
-    500,
-    "test 5000"
-);
-// task delayed with 2000
-taskScheduler.push(
-    function() {
-        console.log('task 3');
-    },
-    2000,
-    "test 2000"
-);
+for (let i = 0; i < 2; i++) {
+    // define task
+    let task = new TaskThread(1000, true, true, function() {
+        console.log(" level 2 task " + i);
+    });
 
-// task delayed with 2592
-setTimeout(function() {
-    taskScheduler.push(
-        function() {
-            console.log('task 4');
-        },
-        4000,
-        "test 4000"
-    );
-}, 4000);
-setTimeout(function() {
-taskScheduler.isRunning  = false;
-}, 6000);
-// task delayed with 500
-taskScheduler.push(
-    function() {
-        console.log('task 5');
-    },
-    500,
-    "test 5000 fater is running false"
-);
+    runner.addSubTask(task);
 
-taskScheduler.push(
-    function() {
-        console.log('task 500');
-    },
-    5000,
-    "test 5000 test stoped thread"
-);
+    // to level 1 tasks should run only after all subLevels of previous tasks has run
+    // a task if finished only if all subLevels are finished
+
+    // simulate some time has passed until subTasks where added to task 1
+    setTimeout(function() {
+
+        console.log("Adding tasks later");
+
+        for (let j = 0; j < 3; j++) {
+            let taskLevelTwo = new TaskThread(1000, true, true, function() {
+                console.log("parent " + i +  "  level 3 task " + j);
+            });
+            task.addSubTask(taskLevelTwo);
+            taskLevelTwo.canAddSubTask = false;
+        }
+        task.canAddSubTask = false;
+
+
+    }, 3000);
+}
+
+runner.executeSubTasks(function() {
+    console.log('done executing');
+});
 ````

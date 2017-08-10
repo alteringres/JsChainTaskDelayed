@@ -1,0 +1,27 @@
+{
+  "name": "js-task-runner-tree",
+  "version": "1.0.0",
+  "description": "Library which facilitate task which must run with a delay after previous tasks has finished, in a tree structure",
+  "main": "index.js",
+  "scripts": {
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alteringres/JsChainTaskDelayed.git"
+  },
+  "keywords": [
+    "taskrunner",
+    "tree",
+    "pid",
+    "javascript",
+    "nodejs",
+    "npm"
+  ],
+  "author": "Ionut Tocila",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alteringres/JsChainTaskDelayed/issues"
+  },
+  "homepage": "https://github.com/alteringres/JsChainTaskDelayed#readme"
+}
