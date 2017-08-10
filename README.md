@@ -14,10 +14,6 @@ for (let i = 0; i < 2; i++) {
 
     runner.addSubTask(task);
 
-    // to level 1 tasks should run only after all subLevels of previous tasks has run
-    // a task if finished only if all subLevels are finished
-
-    // simulate some time has passed until subTasks where added to task 1
     setTimeout(function() {
 
         console.log("Adding tasks later");
