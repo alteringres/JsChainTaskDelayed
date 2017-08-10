@@ -165,4 +165,4 @@ class TaskThread {
     }
 }
 
-exports.TaskThread = TaskThread;
+module.exports = TaskThread;
