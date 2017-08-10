@@ -136,7 +136,8 @@ class TaskThread {
         task.isRunning = true;
 
         let timeOffset = TimeScheduler.computeDiffTimeByMillis(this.lastSubTaskRunTime, task.time);
-        console.log("time offset: " + timeOffset);
+        (TASK_THREAD_VERBOSE > 0) ? console.log("time offset: " + timeOffset) : "";
+
         // console.log("executing task", task);
         let timeoutObj = setTimeout(() => {
             // run original task
