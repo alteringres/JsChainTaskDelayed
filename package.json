@@ -1,6 +1,6 @@
 {
   "name": "js-task-runner-tree",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Library which facilitate task which must run with a delay after previous tasks has finished, in a tree structure",
   "main": "index.js",
   "scripts": {
