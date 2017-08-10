@@ -73,14 +73,6 @@ class TaskThread {
     }
 
     /**
-     * Set is main thread on true
-     */
-    markAsMainThread() {
-
-        this.isMain = true;
-    }
-
-    /**
      * Add new subtask
      *
      * @param task
