@@ -29,7 +29,7 @@ class TimeScheduler {
      * @returns {number}
      */
     static computeDiffTimeByMillis(millisTime, refTime) {
-        let result      = 0;
+        let result = 0;
 
         if (millisTime != null) {
             let currentTime = TimeScheduler.getCurrentTimeMillis();
@@ -44,7 +44,7 @@ class TimeScheduler {
     }
 }
 
-let TASK_THREAD_VERBOSE = 0;
+let TASK_THREAD_VERBOSE = 1;
 
 /**
  * Task definition
@@ -60,16 +60,16 @@ class TaskThread {
      * @param fcn
      */
     constructor(time, waitForSubTasks, canAddSubTask, fcn) {
-        this.time                   = time;
-        this.subTasks               = [];
-        this.waitForSubTasks        = waitForSubTasks;
-        this.fcn                    = fcn;
-        this.canAddSubTask          = canAddSubTask;
-        this.lastSubTaskRunTime     = null;
-        this.verbose                = false;
-        this.isRunning              = false;
-        this.isPaused               = false;
-        this.completeFunction       = null;
+        this.time = time;
+        this.subTasks = [];
+        this.waitForSubTasks = waitForSubTasks;
+        this.fcn = fcn;
+        this.canAddSubTask = canAddSubTask;
+        this.lastSubTaskRunTime = null;
+        this.verbose = false;
+        this.isRunning = false;
+        this.isPaused = false;
+        this.completeFunction = null;
     }
 
     /**
@@ -79,18 +79,19 @@ class TaskThread {
      */
     addSubTask(task) {
         if (!this.waitForSubTasks || !this.canAddSubTask) {
-            throw new Error("No subTask was expected, not allowed or not waiting for it");
+            throw new Error("[ TaskThread ] No subTask was expected, not allowed or not waiting for it");
         }
 
         if (!(task instanceof TaskThread)) {
-            throw new Error("Only instances of " + Task.className + " can be added as subTasks");
+            throw new Error("[ TaskThread ] Only instances of " + Task.className + " can be added as subTasks");
         }
 
-        (TASK_THREAD_VERBOSE > 0) ? console.log("New task added") : "";
         let canResumeThread = this.canResumeThread();
 
         this.subTasks.push(task);
-
+        (TASK_THREAD_VERBOSE > 0)
+            ? console.log("[ TaskThread ] New task added, can resume: " + ((canResumeThread) ? "yes" : "no"))
+            : "";
         if (canResumeThread) {
             this.isPaused = false;
             this.executeSubTasks(this.completeFunction);
@@ -98,6 +99,14 @@ class TaskThread {
     }
 
     canResumeThread() {
+        (TASK_THREAD_VERBOSE > 0)
+            ? console.log(
+                "[ TaskThread ] subTasks length: "
+                + this.subTasks.length
+                + " isRunning: " + ((this.isRunning) ? "yes" : "no")
+                + " isPaused: " + ((this.isPaused) ? "yes" : "no")
+            )
+            : "";
         return (this.subTasks.length === 0 && this.isRunning && this.isPaused);
     }
 
@@ -117,7 +126,7 @@ class TaskThread {
         }
 
         let task = this.subTasks.shift() || null;
-        if (task === null)  {
+        if (task === null) {
             (TASK_THREAD_VERBOSE > 0) ? console.log("[ TaskThread ]  empty task queue") : "";
             /*
              * No task found, can add more sub tasks in the feature, must wait => enter in sleep mode
