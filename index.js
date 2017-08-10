@@ -1,3 +1,5 @@
+let indexTask = 0;
+
 /**
  * Class TimeScheduler
  * Contains time functions
@@ -60,16 +62,28 @@ class TaskThread {
      * @param fcn
      */
     constructor(time, waitForSubTasks, canAddSubTask, fcn) {
-        this.time = time;
-        this.subTasks = [];
-        this.waitForSubTasks = waitForSubTasks;
-        this.fcn = fcn;
-        this.canAddSubTask = canAddSubTask;
+
+        indexTask++;
+
+        this.time               = time;
+        this.subTasks           = [];
+        this.waitForSubTasks    = waitForSubTasks;
+        this.fcn                = fcn;
+        this.canAddSubTask      = canAddSubTask;
         this.lastSubTaskRunTime = null;
-        this.verbose = false;
-        this.isRunning = false;
-        this.isPaused = false;
-        this.completeFunction = null;
+        this.verbose            = false;
+        this.isRunning          = false;
+        this.isPaused           = false;
+        this.completeFunction   = null;
+        this.pid                = indexTask;
+    }
+
+    /**
+     * Returns the task name
+     * @returns {string}
+     */
+    getName() {
+        return "[ TaskThread - " + this.pid + " ] ";
     }
 
     /**
@@ -79,19 +93,23 @@ class TaskThread {
      */
     addSubTask(task) {
         if (!this.waitForSubTasks || !this.canAddSubTask) {
-            throw new Error("[ TaskThread ] No subTask was expected, not allowed or not waiting for it");
+            throw new Error(this.getName() + "::addSubTask No subTask was expected, not allowed or not waiting for it");
         }
 
         if (!(task instanceof TaskThread)) {
-            throw new Error("[ TaskThread ] Only instances of " + Task.className + " can be added as subTasks");
+            throw new Error(this.getName() + "::addSubTask Only instances of " + Task.className + " can be added as subTasks");
         }
 
+        task.parentTask = this;
+        (TASK_THREAD_VERBOSE > 0) ? console.log(this.getName() + "::addSubTask adding task ` " + task.getName() + "`") : "";
+
         let canResumeThread = this.canResumeThread();
+        (TASK_THREAD_VERBOSE > 0)
+            ? console.log(this.getName() + "::addSubTask can resume: " + ((canResumeThread) ? "yes" : "no"))
+            : "";
 
         this.subTasks.push(task);
-        (TASK_THREAD_VERBOSE > 0)
-            ? console.log("[ TaskThread ] New task added, can resume: " + ((canResumeThread) ? "yes" : "no"))
-            : "";
+
         if (canResumeThread) {
             this.isPaused = false;
             this.executeSubTasks(this.completeFunction);
@@ -101,7 +119,7 @@ class TaskThread {
     canResumeThread() {
         (TASK_THREAD_VERBOSE > 0)
             ? console.log(
-                "[ TaskThread ] subTasks length: "
+                this.getName() + "::canResumeThread subTasks length: "
                 + this.subTasks.length
                 + " isRunning: " + ((this.isRunning) ? "yes" : "no")
                 + " isPaused: " + ((this.isPaused) ? "yes" : "no")
@@ -127,16 +145,19 @@ class TaskThread {
 
         let task = this.subTasks.shift() || null;
         if (task === null) {
-            (TASK_THREAD_VERBOSE > 0) ? console.log("[ TaskThread ]  empty task queue") : "";
             /*
              * No task found, can add more sub tasks in the feature, must wait => enter in sleep mode
              * Else, run complete function;
              */
             if (this.canCreateSubTasks()) {
+                (TASK_THREAD_VERBOSE > 0) ? console.log(this.getName() + "::executeSubTasks empty subTasks, enter in sleep mode") : "";
                 this.isPaused = true;
                 this.isRunning = true;
                 return false;
             } else {
+                (TASK_THREAD_VERBOSE > 0)
+                    ? console.log(this.getName() + "::executeSubTasks empty subTasks, finish task (thread blocked)")
+                    : "";
                 this.isRunning = false;
                 completeFunction();
                 return true;
@@ -144,9 +165,10 @@ class TaskThread {
         }
 
         task.isRunning = true;
+        (TASK_THREAD_VERBOSE > 0) ? console.log(this.getName() + "::executeSubTasks executing task ` " + task.getName() + "`") : "";
 
         let timeOffset = TimeScheduler.computeDiffTimeByMillis(this.lastSubTaskRunTime, task.time);
-        (TASK_THREAD_VERBOSE > 0) ? console.log("time offset: " + timeOffset) : "";
+        (TASK_THREAD_VERBOSE > 0) ? console.log(this.getName() + "::executeSubTasks time offset: " + timeOffset) : "";
 
         // console.log("executing task", task);
         let timeoutObj = setTimeout(() => {
@@ -159,12 +181,32 @@ class TaskThread {
              * Execute task
              */
             task.executeSubTasks(() => {
-                (TASK_THREAD_VERBOSE > 0) ? console.log("[ TaskThread ] complete subTasks") : "";
+                (TASK_THREAD_VERBOSE > 0) ? console.log(this.getName() + "::executeSubTasks complete subTasks") : "";
                 this.executeSubTasks(completeFunction);
             });
 
             clearTimeout(timeoutObj);
         }, timeOffset);
+    }
+
+    /**
+     * Lock task runner, don't receive any more tasks at this level
+     */
+    lockTask() {
+        this.canAddSubTask = false;
+        let canResumeThread = this.canResumeThread();
+
+        (TASK_THREAD_VERBOSE > 0)
+            ? console.log(this.getName() + "::lockTask Locked task, can resume: " + ((canResumeThread) ? "yes" : "no"))
+            : "";
+
+        if (canResumeThread) {
+            if (this.completeFunction === null) {
+                throw new Error(this.getName() + "::lockTask Call executeSubTasks before locking");
+            }
+            this.isPaused = false;
+            this.executeSubTasks(this.completeFunction);
+        }
     }
 
     /**
