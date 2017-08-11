@@ -1,5 +1,5 @@
 # JsChainTaskDelayed
-Project which has the main purpose to facilitate the  execution of tasks on after the other delayed.
+Library which facilitate task which must run with a delay after previous tasks has finished, in a tree structure
 
 #Usage
 ````javascript
