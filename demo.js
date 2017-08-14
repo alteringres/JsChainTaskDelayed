@@ -29,7 +29,7 @@ class Test {
             });
         }
 
-        rootTask.waitForSubTasks = false;
+        rootTask.lockTaskWhenFinished();
     }
 
     taskLevelTwo(parentTask) {
