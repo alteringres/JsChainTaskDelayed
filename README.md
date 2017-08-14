@@ -92,7 +92,6 @@ let childLevelOne = TaskThread.createSubTask(rootTask, [time], [false|true], [fa
 # Example 2
 
 ````javascript
-
 let TaskThread = require("./index");
 
 TaskThread.verbose = 3;
@@ -109,15 +108,7 @@ class Test {
         /*
          * Create root task, think of this like main pid from which will start all forks
          */
-        let rootTask = new TaskThread(0, true, true, function() {
-            console.log("General task");
-        });
-        /*
-         * Without calling this function, no subtask will be executed, no sleep mode activated
-         * Call this function only on root task becuase for subTasks will be called automatically
-         */
-        rootTask.executeSubTasks();
-
+        let rootTask = TaskThread.createRootTask();
         /*
          * Define a list of 3 elements to test how task process works
          */
@@ -132,7 +123,7 @@ class Test {
             });
         }
 
-        rootTask.waitForSubTasks = false;
+        rootTask.lockTaskWhenFinished();
     }
 
     taskLevelTwo(parentTask) {
