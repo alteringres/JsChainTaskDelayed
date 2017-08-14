@@ -1,51 +1,58 @@
 let TaskThread = require("./index");
 
-let runner = new TaskThread(0, true, true, function() {
-    console.log("general task");
-});
-runner.executeSubTasks(function() {
-    console.log("all tasks are executed")
-});
+TaskThread.verbose = 3;
 
-let indexTask = 1;
+/**
+ * Main test class
+ */
+class Test {
+    constructor() {
+        // to be implemented
+    }
 
-console.log("---------- test main function ---------");
-let intervalAddTask = setInterval(function() {
-    indexTask++;
-    let task = new TaskThread(1000, true, true, function() {
-        console.log("Task number " +indexTask + " was executed");
-    });
-    runner.addSubTask(task);
-    task.lockTask();
-}, 1000);
+    run() {
+        /*
+         * Create root task, think of this like main pid from which will start all forks
+         */
+        let rootTask = TaskThread.createRootTask();
+        /*
+         * Define a list of 3 elements to test how task process works
+         */
+        let rootElements = [ "L1 1", "L1 2", "L1 3"];
 
-let timeoutClear = setTimeout(function() {
-    clearInterval(intervalAddTask);
-    console.log("--------- test locking in sleep mode -----");
-    indexTask++;
-    let taskOne = new TaskThread(1000, true, true, function() {
-        console.log("Task number " +indexTask + " was executed (a)");
-    });
-    runner.addSubTask(taskOne);
+        for (let rootElementIndex in rootElements) {
+            let rootElement = rootElements[rootElementIndex];
 
+            let task = TaskThread.createSubTask(rootTask, 100, true, true, () => {
+                console.log("Executed subtask " + rootElement);
+                this.taskLevelTwo(task);
+            });
+        }
 
-    indexTask++;
-    let taskOneChild1 = new TaskThread(1000, true, true, function() {
-        console.log("Task number " +indexTask + " was executed (b)");
-    });
-    taskOne.addSubTask(taskOneChild1);
-    taskOneChild1.lockTask();
+        rootTask.waitForSubTasks = false;
+    }
 
-    indexTask++;
-    let taskTwo = new TaskThread(1000, true, true, function() {
-        console.log("Task number " +indexTask + " was executed (c)");
-    });
-    runner.addSubTask(taskTwo);
+    taskLevelTwo(parentTask) {
+        let rootElements = [ "L2 1", "L2 2"];
 
-    taskOne.lockTask();
-    taskTwo.lockTask();
+        for (let rootElementIndex in rootElements) {
+            let rootElement = rootElements[rootElementIndex];
 
-    clearTimeout(timeoutClear);
-}, 3000);
+            let task = TaskThread.createSubTask(parentTask, 100, true, true, () => {
+                console.log("Executed subtask " + rootElement);
+                this.taskLevelThree(task);
+            });
+        }
+        setTimeout(function() {
+            console.log(">>>>>>>>>>>>>>   shutdown after all sub tasks are finished " + parentTask.getName());
+            parentTask.lockTaskWhenFinished();
+        }, 1000);
+    }
 
-// runner.lockTask();
+    taskLevelThree(parentTask) {
+        parentTask.lockTaskWhenFinished();
+    }
+}
+
+let test = new Test();
+test.run();
