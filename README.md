@@ -1,8 +1,8 @@
 # JsChainTaskDelayed
-Library which facilitate task which must run with a delay after previous tasks has finished, in a tree structure
 
-It is used to run tasks which must wait a certain time after the previous has finished, and
-each of those processes can have children which must be executed one after the other, when a
+It is used to run tasks which must wait a certain time after the previous has finished.
+
+Each of those processes can have children which must be executed one after the other, when a
 a certain time passed after previous child run. 
 Now, this structure is actually a tree, where each task can have subTasks.
 
