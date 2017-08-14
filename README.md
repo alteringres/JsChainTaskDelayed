@@ -77,7 +77,7 @@ let rootTask = TaskThread.createRootTask();
 let childLevelOne = TaskThread.createSubTask(rootTask, [time], [false|true], [false|true], function() {
     //do your staff here
     //can add subtasks
-    let childLevelTwo = TaskThread.createSubTask(rootTask, [time], [false|true], [false|true], function() {
+    let childLevelTwo = TaskThread.createSubTask(childLevelOne, [time], [false|true], [false|true], function() {
         // do something
         // maybe add some more subTasks
         childLevelTwo.lockTaskWhenFinished();
