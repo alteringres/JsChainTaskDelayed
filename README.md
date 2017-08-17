@@ -6,12 +6,12 @@ Each of those processes can have children which must be executed one after the o
 a certain time passed after previous child run. 
 Now, this structure is actually a tree, where each task can have subTasks.
 
-When a task si running, we must tell when no child can be added in order to run the next task, 
+When a task is running, we must tell when no child can be added in order to run the next task, 
 otherwise it will wait for new children to be created in the feature. That's because when
-async is used, we don't actually know when a task can be added or not, but we can know at some point
+async is used we don't actually know when a task can be added or not, but we can know at some point
 when a task can't get any subTask.
 
-When a task executes all subTasks, if adding of children is allowed, it will enter in sleep mode.
+When a task executes all subTasks, if the adding of children is allowed, it will enter in sleep mode.
 This mean, it will wait for new children, so no other task is executed.
 When a new child is added, will exit from sleep mode and tries to run it. 
 If mode subTasks were added, then will execute them with two conditions:
@@ -24,7 +24,7 @@ If mode subTasks were added, then will execute them with two conditions:
 ### TaskThread.verbose  
 Controls the logging on default output stream.
 Int value, default has -1 value, any value grater then -1 will enable logging
-This version has loggin level 0, 1;
+This version has logging level 0, 1;
 Can be changed, e.g:
 ````javascript
 TaskThread.verbose = 3;

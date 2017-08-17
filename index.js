@@ -60,28 +60,28 @@ class TaskThread {
      * @param waitForSubTasks       Flag to know if this will wait for subTasks or not
      * @param canAddSubTask         Flag to know if any subTask can be added
      * @param fcn                   Main function to execute for this task
-     * @param completeCallback      Callback triggered when task has finished
+     * @param taskCompleteCallback  Callback triggered when task has finished
      */
     constructor(
         time,
         waitForSubTasks,
         canAddSubTask,
         fcn,
-        completeCallback
+        taskCompleteCallback
     ) {
         indexTask++;
 
-        this.time               = time;
-        this.subTasks           = [];
-        this.waitForSubTasks    = waitForSubTasks;
-        this.fcn                = fcn;
-        this.canAddSubTask      = canAddSubTask;
-        this.lastSubTaskRunTime = null;
-        this.isRunning          = false;
-        this.isPaused           = false;
-        this.completeFunction   = null;
-        this.pid                = indexTask;
-        this.completeFunction   = (typeof completeCallback == "function") ? completeCallback : null;
+        this.time                   = time;
+        this.subTasks               = [];
+        this.waitForSubTasks        = waitForSubTasks;
+        this.fcn                    = fcn;
+        this.canAddSubTask          = canAddSubTask;
+        this.lastSubTaskRunTime     = null;
+        this.isRunning              = false;
+        this.isPaused               = false;
+        this.pid                    = indexTask;
+        this.notifyTaskDoneCallback = null;
+        this.taskCompleteCallback   = (typeof taskCompleteCallback == "function") ? taskCompleteCallback : null;
     }
 
     /**
@@ -139,10 +139,15 @@ class TaskThread {
 
         if (canResumeThread) {
             this.isPaused = false;
-            this.executeSubTasks(this.completeFunction);
+            this.executeSubTasks(this.notifyTaskDoneCallback);
         }
     }
 
+    /**
+     * Retruns true if can resume thread
+     *
+     * @returns {boolean}
+     */
     canResumeThread() {
         (TASK_THREAD_VERBOSE >= 1)
             ? console.log(
@@ -160,15 +165,15 @@ class TaskThread {
      *
      * Returns true or false if task is complete or not
      *
-     * @param completeFunction
+     * @param notifyTaskDoneCallback
      */
-    executeSubTasks(completeFunction) {
+    executeSubTasks(notifyTaskDoneCallback) {
         /*
          * Hold a reference to complete function in order to can pause thread
          */
-        completeFunction = completeFunction || function() {};
-        if (this.completeFunction == null) {
-            this.completeFunction = completeFunction;
+        notifyTaskDoneCallback = notifyTaskDoneCallback || function() {};
+        if (this.notifyTaskDoneCallback == null) {
+            this.notifyTaskDoneCallback = notifyTaskDoneCallback;
         }
 
         let task = this.subTasks.shift() || null;
@@ -187,7 +192,8 @@ class TaskThread {
                     ? console.log(this.getName() + "::executeSubTasks empty subTasks, finish task (thread blocked)")
                     : "";
                 this.isRunning = false;
-                completeFunction();
+                TaskThread.completeTask(this);
+
                 return true;
             }
         }
@@ -210,7 +216,7 @@ class TaskThread {
              */
             task.executeSubTasks(() => {
                 (TASK_THREAD_VERBOSE >= 0) ? console.log(this.getName() + "::executeSubTasks complete subTasks") : "";
-                this.executeSubTasks(completeFunction);
+                this.executeSubTasks(notifyTaskDoneCallback);
             });
 
             clearTimeout(timeoutObj);
@@ -231,7 +237,7 @@ class TaskThread {
          * So we are executing the complete function
          */
         if (canResume) {
-            this.completeFunction();
+            TaskThread.completeTask(this);
         }
     }
 
@@ -272,6 +278,25 @@ class TaskThread {
         rootTask.executeSubTasks();
 
         return rootTask;
+    }
+
+    /**
+     * Notify parent task this this is completed, notify user supplied callback that this task is completed
+     * @param taskThread
+     */
+    static completeTask(taskThread) {
+        if (!(taskThread instanceof TaskThread)) {
+            throw new Error("The parent task must be instance of TaskThread");
+        }
+
+        /*
+         * Run complete function supplied by user before letting parent task know that this is completed
+         */
+        if (typeof taskThread.taskCompleteCallback == "function") {
+            taskThread.taskCompleteCallback(taskThread);
+        }
+
+        taskThread.notifyTaskDoneCallback();
     }
 }
 
